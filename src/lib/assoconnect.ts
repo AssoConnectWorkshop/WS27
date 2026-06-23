@@ -94,9 +94,8 @@ export function createExpenseReport(data: {
   currency: string;
 }) {
   const orgUlid = process.env.ASSOCONNECT_ORGANIZATION_ULID;
-  const personUlid = process.env.ASSOCONNECT_PERSON_ULID;
+  const personUlid = process.env.ASSOCONNECT_PERSON_ULID ?? "01KVTGQXSSNSQV5CA3541A3E7X";
   if (!orgUlid) throw new Error("ASSOCONNECT_ORGANIZATION_ULID is not set");
-  if (!personUlid) throw new Error("ASSOCONNECT_PERSON_ULID is not set");
 
   return post<ExpenseReport>("/finance_expense_reports", {
     organization: `/api/v1/organizations/${orgUlid}`,
