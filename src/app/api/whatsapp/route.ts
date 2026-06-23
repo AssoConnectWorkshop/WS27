@@ -89,8 +89,9 @@ export async function POST(request: Request) {
     let receipt: ReceiptData;
     try {
       receipt = await parseReceiptFromUrl(mediaUrl, authHeader);
-    } catch {
-      return twiml("❌ Je n'ai pas pu analyser l'image. Réessaie avec une photo plus nette.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return twiml(`❌ Erreur analyse : ${msg.slice(0, 300)}`);
     }
 
     const pending = { ...receipt, imageUrl: mediaUrl };
