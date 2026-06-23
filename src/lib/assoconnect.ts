@@ -111,7 +111,7 @@ export async function uploadReceiptFile(imageUrl: string, expenseReportIri: stri
   // Download image from Twilio
   const imgRes = await fetch(imageUrl, {
     headers: {
-      Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_SSID}:${process.env.TWILIO_TOKEN}`).toString("base64")}`,
     },
   });
   if (!imgRes.ok) throw new Error(`Failed to download image: ${imgRes.status}`);

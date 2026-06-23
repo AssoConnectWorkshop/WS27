@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
   // --- User sends an image ---
   if (numMedia > 0 && mediaUrl && mediaType?.startsWith("image/")) {
-    const authHeader = `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString("base64")}`;
+    const authHeader = `Basic ${Buffer.from(`${process.env.TWILIO_SSID}:${process.env.TWILIO_TOKEN}`).toString("base64")}`;
 
     let receipt: ReceiptData;
     try {
