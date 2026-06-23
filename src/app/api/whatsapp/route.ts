@@ -79,6 +79,8 @@ export async function POST(request: Request) {
   const mediaUrl = formData.get("MediaUrl0") as string | null;
   const mediaType = formData.get("MediaContentType0") as string | null;
 
+  console.log("WA webhook", { from, body, numMedia, mediaUrl, mediaType });
+
   const supabase = await createClient();
   const session = await getSession(supabase, from);
 
