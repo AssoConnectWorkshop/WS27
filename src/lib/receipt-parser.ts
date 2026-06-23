@@ -14,7 +14,10 @@ const client = new Anthropic();
 export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string): Promise<ReceiptData> {
   // Download image to base64
   const fetchOptions: RequestInit = authHeader ? { headers: { Authorization: authHeader } } : {};
-  const imgRes = await fetch(imageUrl, fetchOptions);
+  let imgRes = await fetch(imageUrl, fetchOptions);
+  if (!imgRes.ok && authHeader) {
+    imgRes = await fetch(imageUrl);
+  }
   if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
 
   const buffer = Buffer.from(await imgRes.arrayBuffer());
