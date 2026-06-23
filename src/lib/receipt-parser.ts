@@ -18,7 +18,7 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   if (!imgRes.ok && authHeader) {
     imgRes = await fetch(imageUrl);
   }
-  if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
+  if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status} — url: ${imageUrl.slice(0, 80)} — hasAuth: ${!!authHeader}`);
 
   const buffer = Buffer.from(await imgRes.arrayBuffer());
   const base64 = buffer.toString("base64");
