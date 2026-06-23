@@ -22,7 +22,7 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   const mediaType = (imgRes.headers.get("content-type") ?? "image/jpeg") as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
   const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-4-6",
     max_tokens: 500,
     messages: [
       {
