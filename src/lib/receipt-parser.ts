@@ -13,12 +13,17 @@ const client = new Anthropic();
 
 export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string): Promise<ReceiptData> {
   // Download image to base64
-  const fetchOptions: RequestInit = authHeader ? { headers: { Authorization: authHeader } } : {};
+  // Extract Account SID from Twilio media URL (more reliable than env var)
+  const accountSidMatch = imageUrl.match(/Accounts\/([^/]+)\//);
+  const accountSid = accountSidMatch?.[1] ?? process.env.TWILIO_SSID;
+  const authToken = process.env.TWILIO_TOKEN;
+  const derivedAuth = accountSid && authToken
+    ? `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`
+    : authHeader;
+
+  const fetchOptions: RequestInit = derivedAuth ? { headers: { Authorization: derivedAuth } } : {};
   let imgRes = await fetch(imageUrl, fetchOptions);
-  if (!imgRes.ok && authHeader) {
-    imgRes = await fetch(imageUrl);
-  }
-  if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status} — url: ${imageUrl.slice(0, 80)} — hasAuth: ${!!authHeader}`);
+  if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status} — sid: ${accountSid?.slice(0, 10)} — hasToken: ${!!authToken}`);
 
   const buffer = Buffer.from(await imgRes.arrayBuffer());
   const base64 = buffer.toString("base64");
