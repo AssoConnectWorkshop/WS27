@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+
+export const maxDuration = 60;
 import { parseReceiptFromUrl, missingFields, formatConfirmation, type ReceiptData } from "@/lib/receipt-parser";
 import { createExpenseReport, uploadReceiptFile, getExpenseReports } from "@/lib/assoconnect";
 
