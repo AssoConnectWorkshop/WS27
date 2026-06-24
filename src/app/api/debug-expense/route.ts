@@ -14,28 +14,14 @@ export async function GET() {
     { organization: orgUlid, person: personUlid },
   ];
 
-  const results = [];
-  for (const iri of payloads) {
-    const body = {
-      ...iri,
-      date: "2026-06-24",
-      category: "other",
-      comment: "debug test",
-      amount: { amount: 1, currency: "EUR" },
-    };
-    const res = await fetch(`${BASE_URL}/finance_expense_reports`, {
-      method: "POST",
-      headers: {
-        Accept: "application/ld+json",
-        "Content-Type": "application/ld+json",
-        "X-AUTH-TOKEN": token!,
-      },
-      body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    results.push({ iri, status: res.status, response: text.slice(0, 300) });
-    if (res.ok) break; // stop at first success
-  }
+  // First: list persons to get their canonical @id
+  const personsRes = await fetch(`${BASE_URL}/organizations/${orgUlid}/persons?itemsPerPage=5`, {
+    headers: { Accept: "application/ld+json", "X-AUTH-TOKEN": token! },
+  });
+  const personsData = await personsRes.json();
+  const persons = personsData["hydra:member"]?.map((p: { "@id": string; email: string; firstName: string }) => ({
+    id: p["@id"], email: p.email, firstName: p.firstName,
+  }));
 
-  return Response.json(results);
+  return Response.json({ persons, orgUlid, personUlid });
 }
