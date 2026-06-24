@@ -29,6 +29,22 @@ async function getUserToken(): Promise<string> {
   return cachedAccessToken;
 }
 
+async function requestAsUser<T>(path: string): Promise<T> {
+  const token = await getUserToken();
+  const res = await fetch(`https://assoconnect-workshops.assoconnect.com/api/v1${path}`, {
+    headers: {
+      Accept: "application/ld+json",
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`AssoConnect GET ${path} failed: ${res.status} ${res.statusText} — ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
 async function postAsUser<T>(path: string, body: unknown): Promise<T> {
   const token = await getUserToken();
   const res = await fetch(`https://assoconnect-workshops.assoconnect.com/api/v1${path}`, {
@@ -128,7 +144,7 @@ export function getOrganization(ulid = process.env.ASSOCONNECT_ORGANIZATION_ULID
 
 export function getExpenseReports(orgUlid = process.env.ASSOCONNECT_ORGANIZATION_ULID) {
   if (!orgUlid) throw new Error("ASSOCONNECT_ORGANIZATION_ULID is not set");
-  return request<{ "hydra:member": ExpenseReport[] }>(`/organizations/${orgUlid}/finance_expense_reports?status=submitted&itemsPerPage=10`);
+  return requestAsUser<{ "hydra:member": ExpenseReport[] }>(`/organizations/${orgUlid}/finance_expense_reports?status=submitted&itemsPerPage=10`);
 }
 
 export async function createExpenseReport(data: {
