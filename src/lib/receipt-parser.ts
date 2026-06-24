@@ -7,6 +7,8 @@ export type ReceiptData = {
   merchant: string | null;
   category: string | null;
   comment: string | null;
+  reimbursable: boolean;
+  rejection_reason: string | null;
 };
 
 const client = new Anthropic();
@@ -49,7 +51,9 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   "date": <date in YYYY-MM-DD format, or null if not visible>,
   "merchant": <merchant/restaurant/shop name, or null>,
   "category": <one of: RECEPTION, TRAVEL, MISSION, FURNITURE, LOCATION, MARKETING_AND_COMMUNICATION, MILEAGE_EXPENSE, TELECOMMUNICATION, OTHER — pick the closest match>,
-  "comment": <brief description, e.g. "Lunch at Le Petit Bistro">
+  "comment": <brief description, e.g. "Lunch at Le Petit Bistro">,
+  "reimbursable": <true if this is a legitimate professional expense; false if it is a personal expense not eligible for reimbursement, such as dry cleaning / pressing, clothing, hairdresser, pharmacy, personal groceries, gym, etc.>,
+  "rejection_reason": <if reimbursable is false, a short French explanation why, e.g. "Pressing / nettoyage à sec — dépense personnelle non prise en charge"; otherwise null>
 }`,
           },
         ],
@@ -62,13 +66,42 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   if (!jsonMatch) throw new Error("No JSON found in receipt parser response");
 
   const parsed = JSON.parse(jsonMatch[0]) as ReceiptData;
+
+  const merchant = parsed.merchant ?? "";
+  const comment = parsed.comment ?? "";
+  const PERSONAL_KEYWORDS = [
+    // pressing / dry cleaning
+    "pressing", "nettoyage à sec", "nettoyage a sec", "blanchisserie", "laverie",
+    "teinturerie", "dry clean", "dry-clean", "laundry",
+    // coiffeur
+    "coiffeur", "coiffure", "salon de coiffure", "barbier", "barber", "hair salon",
+    // santé personnelle
+    "pharmacie", "parapharmacie",
+    // habillement
+    "vêtements", "vetements", "habillement", "prêt-à-porter", "pret-a-porter",
+    // sport / loisir
+    "salle de sport", "gym", "fitness",
+  ];
+  // Search across all string fields so we catch the keyword wherever the AI puts it
+  const lowerText = [merchant, comment, parsed.category ?? ""]
+    .join(" ")
+    .toLowerCase();
+  const matchedKeyword = PERSONAL_KEYWORDS.find(kw => lowerText.includes(kw));
+
+  const reimbursable = matchedKeyword ? false : parsed.reimbursable !== false;
+  const rejection_reason = matchedKeyword
+    ? `${merchant || matchedKeyword} — dépense personnelle non prise en charge`
+    : (parsed.rejection_reason ?? null);
+
   return {
     amount: typeof parsed.amount === "number" ? parsed.amount : null,
     currency: parsed.currency ?? "EUR",
     date: parsed.date ?? null,
-    merchant: parsed.merchant ?? null,
+    merchant: merchant || null,
     category: parsed.category ?? null,
     comment: parsed.comment ?? null,
+    reimbursable,
+    rejection_reason,
   };
 }
 

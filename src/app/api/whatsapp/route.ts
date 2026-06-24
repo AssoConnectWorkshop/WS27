@@ -107,6 +107,11 @@ async function handlePost(request: Request) {
       return twiml(`❌ Erreur analyse : ${msg.slice(0, 300)}`);
     }
 
+    if (!receipt.reimbursable) {
+      const reason = receipt.rejection_reason ?? "Dépense personnelle non prise en charge";
+      return twiml(`🚫 Non, cette dépense n'est pas prise en charge.\n\n${reason}`);
+    }
+
     const pending = { ...receipt, imageUrl: mediaUrl };
     const missing = missingFields(receipt);
 
