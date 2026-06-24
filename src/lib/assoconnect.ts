@@ -98,8 +98,8 @@ export function createExpenseReport(data: {
   if (!orgUlid) throw new Error("ASSOCONNECT_ORGANIZATION_ULID is not set");
 
   return post<ExpenseReport>("/finance_expense_reports", {
-    organization: orgUlid,
-    person: personUlid,
+    organization: `${BASE_URL}/organizations/${orgUlid}`,
+    person: `${BASE_URL}/persons/${personUlid}`,
     date: data.date,
     category: data.category,
     comment: data.comment,
