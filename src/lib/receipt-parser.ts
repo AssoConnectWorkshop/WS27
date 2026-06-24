@@ -70,13 +70,22 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   const merchant = parsed.merchant ?? "";
   const comment = parsed.comment ?? "";
   const PERSONAL_KEYWORDS = [
-    "pressing", "nettoyage à sec", "blanchisserie", "laverie", "teinturerie",
-    "coiffeur", "coiffure", "salon de coiffure", "barbier", "barber",
+    // pressing / dry cleaning
+    "pressing", "nettoyage à sec", "nettoyage a sec", "blanchisserie", "laverie",
+    "teinturerie", "dry clean", "dry-clean", "laundry",
+    // coiffeur
+    "coiffeur", "coiffure", "salon de coiffure", "barbier", "barber", "hair salon",
+    // santé personnelle
     "pharmacie", "parapharmacie",
-    "vêtements", "vetements", "habillement", "boutique", "prêt-à-porter",
+    // habillement
+    "vêtements", "vetements", "habillement", "prêt-à-porter", "pret-a-porter",
+    // sport / loisir
     "salle de sport", "gym", "fitness",
   ];
-  const lowerText = `${merchant} ${comment}`.toLowerCase();
+  // Search across all string fields so we catch the keyword wherever the AI puts it
+  const lowerText = [merchant, comment, parsed.category ?? ""]
+    .join(" ")
+    .toLowerCase();
   const matchedKeyword = PERSONAL_KEYWORDS.find(kw => lowerText.includes(kw));
 
   const reimbursable = matchedKeyword ? false : parsed.reimbursable !== false;
