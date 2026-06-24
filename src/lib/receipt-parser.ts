@@ -66,15 +66,33 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   if (!jsonMatch) throw new Error("No JSON found in receipt parser response");
 
   const parsed = JSON.parse(jsonMatch[0]) as ReceiptData;
+
+  const merchant = parsed.merchant ?? "";
+  const comment = parsed.comment ?? "";
+  const PERSONAL_KEYWORDS = [
+    "pressing", "nettoyage à sec", "blanchisserie", "laverie", "teinturerie",
+    "coiffeur", "coiffure", "salon de coiffure", "barbier", "barber",
+    "pharmacie", "parapharmacie",
+    "vêtements", "vetements", "habillement", "boutique", "prêt-à-porter",
+    "salle de sport", "gym", "fitness",
+  ];
+  const lowerText = `${merchant} ${comment}`.toLowerCase();
+  const matchedKeyword = PERSONAL_KEYWORDS.find(kw => lowerText.includes(kw));
+
+  const reimbursable = matchedKeyword ? false : parsed.reimbursable !== false;
+  const rejection_reason = matchedKeyword
+    ? `${merchant || matchedKeyword} — dépense personnelle non prise en charge`
+    : (parsed.rejection_reason ?? null);
+
   return {
     amount: typeof parsed.amount === "number" ? parsed.amount : null,
     currency: parsed.currency ?? "EUR",
     date: parsed.date ?? null,
-    merchant: parsed.merchant ?? null,
+    merchant: merchant || null,
     category: parsed.category ?? null,
     comment: parsed.comment ?? null,
-    reimbursable: parsed.reimbursable !== false,
-    rejection_reason: parsed.rejection_reason ?? null,
+    reimbursable,
+    rejection_reason,
   };
 }
 
