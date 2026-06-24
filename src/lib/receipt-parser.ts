@@ -22,7 +22,7 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
     : authHeader;
 
   const fetchOptions: RequestInit = derivedAuth ? { headers: { Authorization: derivedAuth } } : {};
-  let imgRes = await fetch(imageUrl, fetchOptions);
+  const imgRes = await fetch(imageUrl, fetchOptions);
   if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status} — sid: ${accountSid?.slice(0, 10)} — hasToken: ${!!authToken}`);
 
   const buffer = Buffer.from(await imgRes.arrayBuffer());
