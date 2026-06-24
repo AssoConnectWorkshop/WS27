@@ -15,10 +15,18 @@ export async function GET() {
   ];
 
   // First: list persons to get their canonical @id
-  const personsRes = await fetch(`${BASE_URL}/organizations/${orgUlid}/persons?itemsPerPage=5`, {
-    headers: { Accept: "application/ld+json", "X-AUTH-TOKEN": token! },
-  });
-  const personsRaw = await personsRes.text();
+  const headers = { Accept: "application/ld+json", "X-AUTH-TOKEN": token! };
 
-  return Response.json({ status: personsRes.status, orgUlid, personUlid, raw: personsRaw.slice(0, 1000) });
+  const [orgRes, personRes] = await Promise.all([
+    fetch(`${BASE_URL}/organizations/${orgUlid}`, { headers }),
+    fetch(`${BASE_URL}/persons/${personUlid}`, { headers }),
+  ]);
+
+  const orgRaw = await orgRes.text();
+  const personRaw = await personRes.text();
+
+  return Response.json({
+    org: { status: orgRes.status, raw: orgRaw.slice(0, 500) },
+    person: { status: personRes.status, raw: personRaw.slice(0, 500) },
+  });
 }
