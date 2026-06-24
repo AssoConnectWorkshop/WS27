@@ -108,7 +108,7 @@ export async function createExpenseReport(data: {
     date: data.date,
     category: data.category,
     comment: data.comment,
-    amount: { amount: data.amount, currency: data.currency },
+    amount: { amount: Math.round(data.amount * 100), currency: data.currency },
   });
 }
 
