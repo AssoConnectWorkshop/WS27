@@ -7,6 +7,8 @@ export type ReceiptData = {
   merchant: string | null;
   category: string | null;
   comment: string | null;
+  reimbursable: boolean;
+  rejection_reason: string | null;
 };
 
 const client = new Anthropic();
@@ -49,7 +51,9 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   "date": <date in YYYY-MM-DD format, or null if not visible>,
   "merchant": <merchant/restaurant/shop name, or null>,
   "category": <one of: RECEPTION, TRAVEL, MISSION, FURNITURE, LOCATION, MARKETING_AND_COMMUNICATION, MILEAGE_EXPENSE, TELECOMMUNICATION, OTHER — pick the closest match>,
-  "comment": <brief description, e.g. "Lunch at Le Petit Bistro">
+  "comment": <brief description, e.g. "Lunch at Le Petit Bistro">,
+  "reimbursable": <true if this is a legitimate professional expense; false if it is a personal expense not eligible for reimbursement, such as dry cleaning / pressing, clothing, hairdresser, pharmacy, personal groceries, gym, etc.>,
+  "rejection_reason": <if reimbursable is false, a short French explanation why, e.g. "Pressing / nettoyage à sec — dépense personnelle non prise en charge"; otherwise null>
 }`,
           },
         ],
@@ -69,6 +73,8 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
     merchant: parsed.merchant ?? null,
     category: parsed.category ?? null,
     comment: parsed.comment ?? null,
+    reimbursable: parsed.reimbursable !== false,
+    rejection_reason: parsed.rejection_reason ?? null,
   };
 }
 
