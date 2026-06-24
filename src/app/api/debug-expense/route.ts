@@ -18,10 +18,7 @@ export async function GET() {
   const personsRes = await fetch(`${BASE_URL}/organizations/${orgUlid}/persons?itemsPerPage=5`, {
     headers: { Accept: "application/ld+json", "X-AUTH-TOKEN": token! },
   });
-  const personsData = await personsRes.json();
-  const persons = personsData["hydra:member"]?.map((p: { "@id": string; email: string; firstName: string }) => ({
-    id: p["@id"], email: p.email, firstName: p.firstName,
-  }));
+  const personsRaw = await personsRes.text();
 
-  return Response.json({ persons, orgUlid, personUlid });
+  return Response.json({ status: personsRes.status, orgUlid, personUlid, raw: personsRaw.slice(0, 1000) });
 }
