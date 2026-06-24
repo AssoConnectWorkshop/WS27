@@ -184,7 +184,7 @@ async function handlePost(request: Request) {
         return twiml(`✅ Dépense soumise pour validation !\n\n💰 ${d.amount} ${d.currency ?? "EUR"}\n📝 ${d.comment ?? ""}\n\nLe trésorier recevra une notification.`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Erreur inconnue";
-        return twiml(`❌ Erreur lors de la soumission : ${msg.slice(0, 200)}`);
+        return twiml(`❌ Erreur lors de la soumission : ${msg.slice(0, 500)}`);
       }
     }
 

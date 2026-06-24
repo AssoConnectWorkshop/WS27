@@ -3,6 +3,52 @@ import "server-only";
 const BASE_URL = "https://app.assoconnect.com/api/v1";
 
 
+// Test user JWT auth (Abir ABDOULA — test account)
+// Access token expires ~12h, auto-refreshed via refresh token
+const TEST_REFRESH_TOKEN = "bbfd1676-6fd9-11f1-ab28-1a2136a09b62";
+let cachedAccessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3ODIzMTE2MzcsImV4cCI6MTc4MjM1NDgzNywicm9sZXMiOltdLCJzZXNzaW9uLWlkIjoiYmJmOWMyYmUtNmZkOS0xMWYxLWFkNDUtMWEyMTM2YTA5YjYyIiwidG9rZW4tdHlwZSI6ImFjY2VzcyIsInVzZXJuYW1lIjoiMDFLVlRHUVhTU05TUVY1Q0EzNTQxQTNFN1gifQ.IHF18HaiO42DHylNuBNLJvS5yS-jGsHDF83lgnohvY_ZAD26hMRltih1tM21uG57X_sCNJuCfhKuSF3K1J1YWhhAjsCuY442S-mNfryS71DU58wHIZ9MqnX6ae7rxnTIeVBJ9pjWu_XcLlBSVRnEJnH-9HRZenE0XpjZ7mKWpiewoOo909KPBep7AzvwlJTL09hAafS8EPTaV8tw-zh1dqXiJd7Q2fPiRcuBe89UqpSIALXFitcQ8rBjwHm6clyXfvDU1E7EqABv9yQY89GFw6j1P2Jbq-A7BdUg-xENNcBkHZCvC4CEHKw8teOrKwXjGOicfJZPkIcdmtJTA4uAtMAyOyfEJuwsV6yTJyirLWRoCwN8cRa5XMsVMTp4bsfAo8cmtp_LB6du4I43jKom2-Bg5PmB008A37_xI9Cg5ZbEdT7pcBVNqaWNWG-GWn_1LbayhhfiU7rsUVsXbFb9-Y-P5vW-6IC8HOncC-V1UrQ380tmPXhfDf9InE1hAMyk8abkuNELr7ZoNKkfewU5YHBqmhKmfzpNSFTi_iRAmkkye1CJiwgTOvl2oqXd5dpWeDBzYarWJggH6bv_ZdRd62D7XYhfMnVpotGNhqyc4Oj2Wovau0ZtiAKQg7BlUwuLiF7NDMNSbhT60UYrJSmsGB1X3oy2j407T8Qi-4xu6d8";
+
+function isTokenExpired(jwt: string): boolean {
+  try {
+    const payload = JSON.parse(Buffer.from(jwt.split(".")[1], "base64").toString());
+    return payload.exp * 1000 < Date.now() + 60_000;
+  } catch {
+    return true;
+  }
+}
+
+async function getUserToken(): Promise<string> {
+  if (!isTokenExpired(cachedAccessToken)) return cachedAccessToken;
+  const res = await fetch("https://assoconnect-workshops.assoconnect.com/api/v1/token/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: TEST_REFRESH_TOKEN }),
+  });
+  if (!res.ok) throw new Error(`Token refresh failed: ${res.status}`);
+  const data = await res.json();
+  cachedAccessToken = data.token ?? data.access_token;
+  return cachedAccessToken;
+}
+
+async function postAsUser<T>(path: string, body: unknown): Promise<T> {
+  const token = cachedAccessToken;
+  const res = await fetch(`https://assoconnect-workshops.assoconnect.com/api/v1${path}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/ld+json",
+      "Content-Type": "application/ld+json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`AssoConnect POST ${path} failed: ${res.status} — ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+
 export type Organization = {
   "@id": string;
   "@type": string;
@@ -71,7 +117,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`AssoConnect POST ${path} failed: ${res.status} ${res.statusText} — ${text}`);
+    throw new Error(`AssoConnect POST ${path} failed: ${res.status} — ${text}`);
   }
 
   return res.json() as Promise<T>;
@@ -101,7 +147,7 @@ export async function createExpenseReport(data: {
   const orgIri = `/api/v1/organizations/${orgUlid}`;
   const personIri = `/api/v1/crm/people/${personUlid}`;
 
-  return post<ExpenseReport>("/finance_expense_reports", {
+  return postAsUser<ExpenseReport>("/finance_expense_reports", {
     organization: orgIri,
     person: personIri,
     date: data.date,
