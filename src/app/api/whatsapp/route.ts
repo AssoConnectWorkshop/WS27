@@ -72,6 +72,15 @@ function parseCorrection(text: string, pending: ReceiptData): ReceiptData | null
 }
 
 export async function POST(request: Request) {
+  try {
+    return await handlePost(request);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return twiml(`💥 Erreur inattendue : ${msg.slice(0, 300)}`);
+  }
+}
+
+async function handlePost(request: Request) {
   const formData = await request.formData();
   const from = formData.get("From") as string;
   const body = (formData.get("Body") as string ?? "").trim();
