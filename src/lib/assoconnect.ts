@@ -86,7 +86,7 @@ export function getExpenseReports(orgUlid = process.env.ASSOCONNECT_ORGANIZATION
   return request<{ "hydra:member": ExpenseReport[] }>(`/organizations/${orgUlid}/finance_expense_reports?status=submitted&itemsPerPage=10`);
 }
 
-export function createExpenseReport(data: {
+export async function createExpenseReport(data: {
   date: string;
   category: string;
   comment: string;
@@ -97,9 +97,14 @@ export function createExpenseReport(data: {
   const personUlid = process.env.ASSOCONNECT_PERSON_ULID ?? "01KVTGQXSSNSQV5CA3541A3E7X";
   if (!orgUlid) throw new Error("ASSOCONNECT_ORGANIZATION_ULID is not set");
 
+  // Fetch the org to get the canonical @id IRI
+  const org = await request<Organization>(`/organizations/${orgUlid}`);
+  const orgIri = org["@id"];
+  const personIri = orgIri.replace(`/organizations/${orgUlid}`, `/persons/${personUlid}`);
+
   return post<ExpenseReport>("/finance_expense_reports", {
-    organization: `${BASE_URL}/organizations/${orgUlid}`,
-    person: `${BASE_URL}/persons/${personUlid}`,
+    organization: orgIri,
+    person: personIri,
     date: data.date,
     category: data.category,
     comment: data.comment,
