@@ -100,7 +100,7 @@ export async function createExpenseReport(data: {
   // Fetch the org to get the canonical @id IRI
   const org = await request<Organization>(`/organizations/${orgUlid}`);
   const orgIri = org["@id"];
-  const personIri = orgIri.replace(`/organizations/${orgUlid}`, `/persons/${personUlid}`);
+  const personIri = `/api/v1/crm/people/${personUlid}`;
 
   return post<ExpenseReport>("/finance_expense_reports", {
     organization: orgIri,
