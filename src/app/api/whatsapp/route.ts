@@ -77,8 +77,7 @@ export async function POST(request: Request) {
   try {
     return await handlePost(request);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return twiml(`💥 Erreur inattendue : ${msg.slice(0, 300)}`);
+    return twiml(err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -103,8 +102,7 @@ async function handlePost(request: Request) {
     try {
       receipt = await parseReceiptFromUrl(mediaUrl, authHeader);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return twiml(`❌ Erreur analyse : ${msg.slice(0, 300)}`);
+      return twiml(err instanceof Error ? err.message : String(err));
     }
 
     if (!receipt.reimbursable) {
@@ -183,8 +181,7 @@ async function handlePost(request: Request) {
         await clearSession(supabase, from);
         return twiml(`✅ Dépense soumise pour validation !\n\n💰 ${d.amount} ${d.currency ?? "EUR"}\n📝 ${d.comment ?? ""}\n\nLe trésorier recevra une notification.`);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Erreur inconnue";
-        return twiml(`❌ Erreur lors de la soumission : ${msg.slice(0, 200)}`);
+        return twiml(err instanceof Error ? err.message : String(err));
       }
     }
 
