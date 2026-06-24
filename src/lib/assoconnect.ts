@@ -30,7 +30,7 @@ async function getUserToken(): Promise<string> {
 }
 
 async function postAsUser<T>(path: string, body: unknown): Promise<T> {
-  const token = await getUserToken();
+  const token = cachedAccessToken;
   const res = await fetch(`https://assoconnect-workshops.assoconnect.com/api/v1${path}`, {
     method: "POST",
     headers: {
