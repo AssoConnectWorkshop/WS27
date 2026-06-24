@@ -164,7 +164,7 @@ async function handlePost(request: Request) {
       try {
         const expense = await createExpenseReport({
           date: d.date ?? today,
-          category: d.category ?? "other",
+          category: d.category ?? "OTHER",
           comment: d.comment ?? `Dépense ${d.merchant ?? ""}`.trim(),
           amount: d.amount!,
           currency: d.currency ?? "EUR",

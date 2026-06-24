@@ -48,7 +48,7 @@ export async function parseReceiptFromUrl(imageUrl: string, authHeader?: string)
   "currency": <currency code, e.g. "EUR", "USD" — default to "EUR" if unclear>,
   "date": <date in YYYY-MM-DD format, or null if not visible>,
   "merchant": <merchant/restaurant/shop name, or null>,
-  "category": <one of: restaurant, transport, accommodation, office_supplies, other>,
+  "category": <one of: RECEPTION, TRAVEL, MISSION, FURNITURE, LOCATION, MARKETING_AND_COMMUNICATION, MILEAGE_EXPENSE, TELECOMMUNICATION, OTHER — pick the closest match>,
   "comment": <brief description, e.g. "Lunch at Le Petit Bistro">
 }`,
           },
